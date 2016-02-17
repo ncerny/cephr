@@ -54,9 +54,12 @@ action :create do
   end
 end
 
-# def change_pool(pool, parameter, value)
-#   Mixlib::ShellOut.new("ceph osd pool set #{pool} #{parameter} #{value}").run_command.error!
-# end
+action :delete do
+  execute "Delete Pool #{new_resource.name}" do
+    command "ceph osd pool delete #{new_resource.name} #{new_resource.name} --yes-i-really-really-mean-it"
+    only_if "ceph osd pool stats #{new_resource.name}"
+  end
+end
 
 def exists?(pool)
   Mixlib::ShellOut.new("ceph osd pool stats #{pool}").run_command.error!
