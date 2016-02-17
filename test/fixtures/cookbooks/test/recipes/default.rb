@@ -63,6 +63,12 @@ end
 #   force true
 # end
 
+ceph_pool 'rbd' do
+  pg_num 64
+  size 2
+  min_size 1
+end
+
 ceph_pool 'data' do
   pg_num 128
   size 2
@@ -71,18 +77,6 @@ end
 
 ceph_pool 'metadata' do
   pg_num 128
-  size 2
-  min_size 1
-end
-
-ceph_pool 'pve' do
-  pg_num 64
-  size 2
-  min_size 1
-end
-
-ceph_pool 'pve2' do
-  pg_num 64
   size 2
   min_size 1
 end
