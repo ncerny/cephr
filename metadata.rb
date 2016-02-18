@@ -11,3 +11,6 @@ conflicts 'ceph'
 depends 'apt'
 depends 'yum'
 depends 'yum-epel'
+
+source_url 'https://github.com/ncerny/cerny_ceph' if respond_to?(:source_url)
+issues_url 'https://github.com/ncerny/cerny_ceph/issues' if respond_to?(:issues_url)
