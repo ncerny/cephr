@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: cerny_ceph
-# Resource:: mds
+# Resource:: fs
 #
 # Copyright 2016 Nathan Cerny
 #
@@ -15,38 +15,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
 include CernyCeph::Helpers
 
-resource_name 'ceph_mds'
+resource_name 'ceph_fs'
 
 property :name, String, name_property: true
-
-load_current_value do
-
-end
+property :data_pool, String, default: 'data'
+property :metadata_pool, String, default: 'metadata'
+property :mount_point, String, default: '/mnt/cephfs'
+property :client, String, default: 'admin'
+property :key, String
 
 action :create do
+  execute "ceph fs new #{new_resource.name} #{new_resource.metadata_pool} #{new_resource.data_pool}" do
+    not_if 'ceph fs ls'
+  end
+end
+
+action :mount do
 
 end
 
-action :start do
-
-end
-
-action :stop do
-
-end
-
-action :restart do
-
-end
-
-action :configure do
-
-end
-
-action :remove do
+action :fuse do
 
 end
