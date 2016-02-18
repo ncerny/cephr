@@ -57,20 +57,20 @@ ceph_mon node['hostname'] do
 end
 
 ceph_osd 'osd.0' do
-  fqdn 'default-bento-centos-72'
+  host 'default-bento-centos-72'
 end
 
 ceph_osd 'osd.1' do
-  fqdn 'default-bento-debian-82'
+  host 'default-bento-debian-82'
 end
 
 ceph_osd 'osd.2' do
-  fqdn 'default-bento-ubuntu-1404'
+  host 'default-bento-ubuntu-1404'
 end
 
 # Example of using a disk instead of a directory
 # ceph_osd 'osd.4' do
-#   fqdn 'default-bento-centos-72'
+#   host 'default-bento-centos-72'
 #   dev '/dev/sdb'
 #   fs_type 'xfs'
 # end

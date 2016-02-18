@@ -23,7 +23,7 @@ include CernyCeph::Helpers
 resource_name 'ceph_osd'
 
 property :name, String, name_property: true
-property :fqdn, String, required: true
+property :host, String, required: true
 property :dev, String
 property :journal, String
 property :fs_type, String, default: 'xfs'
@@ -35,7 +35,7 @@ load_current_value do
 end
 
 action :create do
-  return unless new_resource.fqdn == node['fqdn']
+  return unless new_resource.host == node['fqdn'] || new_resource.host == node['hostname']
   new_resource.uuid ||= SecureRandom.uuid
   new_resource.id ||= new_resource.name.split('.')[1].to_i
 
@@ -103,26 +103,6 @@ action :create do
     supports restart: true, status: true
     action [:enable, :start]
   end
-end
-
-action :start do
-
-end
-
-action :stop do
-
-end
-
-action :restart do
-
-end
-
-action :configure do
-
-end
-
-action :remove do
-
 end
 
 def exists?(osd)
