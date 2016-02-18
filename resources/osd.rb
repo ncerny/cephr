@@ -71,18 +71,6 @@ action :create do
     not_if { current_resource }
   end
 
-  # execute "ceph osd crush add-bucket #{node['fqdn']} host" do
-  #   not_if { current_resource }
-  # end
-  #
-  # execute "ceph osd crush move #{node['fqdn']} root=default" do
-  #   not_if { current_resource }
-  # end
-  #
-  # execute "ceph osd crush add #{new_resource.name} 1.0 host=#{node['fqdn']}" do
-  #   not_if { current_resource }
-  # end
-
   file "/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}/done" do
     user 'ceph'
     action :touch
