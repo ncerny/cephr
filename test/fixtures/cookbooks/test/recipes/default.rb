@@ -56,11 +56,23 @@ ceph_mon node['hostname'] do
   osd_bootstrap_secret 'AQA31hVWrke4GhAAHfKU4POaKpaqvuhDSnwlLA=='
 end
 
-# ceph_osd '0' do
-#   dev 'default-bento-centos-72:sdb'
-#   fs 'xfs'
-#   journal nil
-#   force true
+ceph_osd 'osd.0' do
+  fqdn 'default-bento-centos-72'
+end
+
+ceph_osd 'osd.1' do
+  fqdn 'default-bento-debian-82'
+end
+
+ceph_osd 'osd.2' do
+  fqdn 'default-bento-ubuntu-1404'
+end
+
+# Example of using a disk instead of a directory
+# ceph_osd 'osd.4' do
+#   fqdn 'default-bento-centos-72'
+#   dev '/dev/sdb'
+#   fs_type 'xfs'
 # end
 
 ceph_pool 'rbd' do
