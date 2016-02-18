@@ -28,7 +28,7 @@ property :admin_secret, String, required: true
 property :osd_bootstrap_secret, String, required: true
 
 load_current_value do
-
+  current_value_does_not_exist! unless exists?(name)
 end
 
 action :create do
@@ -112,4 +112,11 @@ action :create do
     supports restart: true, status: true
     action [:enable, :start]
   end
+end
+
+def exists?(mon)
+  Mixlib::ShellOut.new("ceph mon metadata #{mon}").run_command.error!
+  true
+rescue
+  false
 end
