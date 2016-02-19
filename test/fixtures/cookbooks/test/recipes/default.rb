@@ -50,11 +50,32 @@ ceph_cluster 'ceph' do
   EOF
 end
 
-ceph_mon node['hostname'] do
-  monitor_secret 'AQCS2rJWs1ZlDxAACh7GZoxYXp86fJ8aAplvWA=='
-  admin_secret 'AQCS2rJWl6yHDRAAXX3gQGZrDKmGtU1Tdq4Fvg=='
-  osd_bootstrap_secret 'AQA31hVWrke4GhAAHfKU4POaKpaqvuhDSnwlLA=='
+ceph_auth 'client.admin' do
+  action :write
+  secret 'AQCS2rJWl6yHDRAAXX3gQGZrDKmGtU1Tdq4Fvg=='
+  keyring '/etc/ceph/ceph.client.admin.keyring'
+  uid 0
+  caps mon: 'allow *',
+       osd: 'allow *',
+       mds: 'allow'
 end
+
+ceph_auth 'mon.' do
+  action :write
+  secret 'AQCS2rJWs1ZlDxAACh7GZoxYXp86fJ8aAplvWA=='
+  keyring '/var/lib/ceph/tmp/ceph.mon.keyring'
+  caps mon: 'allow *'
+end
+
+ceph_auth 'client.bootstrap-osd' do
+  action :write
+  secret 'AQA31hVWrke4GhAAHfKU4POaKpaqvuhDSnwlLA=='
+  keyring '/var/lib/ceph/bootstrap-osd/ceph.keyring'
+  caps mon: 'allow profile bootstrap-osd',
+       osd: 'allow profile bootstrap-osd'
+end
+
+ceph_mon node['hostname']
 
 ceph_osd 'osd.0' do
   host 'default-bento-centos-72'

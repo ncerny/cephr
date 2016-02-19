@@ -17,15 +17,9 @@
 # limitations under the License.
 # rubocop:disable LineLength
 
-require_relative '../libraries/helpers'
-include CernyCeph::Helpers
-
 resource_name 'ceph_mon'
 
 property :name, String, name_property: true
-property :monitor_secret, String, required: true
-property :admin_secret, String, required: true
-property :osd_bootstrap_secret, String, required: true
 
 load_current_value do
   current_value_does_not_exist! unless exists?(name)
@@ -48,26 +42,14 @@ action :create do
     action :create
   end
 
-  execute 'Create Monitor Keyring' do
-    command "ceph-authtool --create-keyring /var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring --add-key=#{new_resource.monitor_secret} --name=mon. --cap mon 'allow *'"
-    user 'ceph'
-    not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
-  end
-
-  execute 'Create Admin Keyring' do
-    command "ceph-authtool --create-keyring /etc/ceph/#{node.run_state['ceph']['cluster']}.client.admin.keyring --add-key=#{new_resource.admin_secret} -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'"
-    user 'ceph'
-    creates '/etc/ceph/ceph.client.admin.keyring'
-  end
-
   execute 'Import Admin Keyring into Monitor Keyring' do
     command "ceph-authtool /var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring --import-keyring /etc/ceph/#{node.run_state['ceph']['cluster']}.client.admin.keyring"
     user 'ceph'
     not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
   end
 
-  execute 'add bootstrap-osd key to keyring' do
-    command "ceph-authtool /var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring --name=client.bootstrap-osd --add-key='#{new_resource.osd_bootstrap_secret}' --cap mon 'allow profile bootstrap-osd'  --cap osd 'allow profile bootstrap-osd'"
+  execute 'Import Bootstrap Keyring into Monitor Keyring' do
+    command "ceph-authtool /var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring --import-keyring /var/lib/ceph/bootstrap-osd/#{node.run_state['ceph']['cluster']}.keyring"
     user 'ceph'
     not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
   end
