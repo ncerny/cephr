@@ -15,15 +15,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# rubocop:disable LineLength
+
+require_relative '../libraries/helpers'
+include CernyCeph::Helpers
 
 resource_name 'ceph_auth'
 
 property :entity, String, name_property: true
 property :caps, [String, Hash], required: true
-property :secret, String
-property :keyring, String
-property :uid, Integer
 
 load_current_value do
   current_value_does_not_exist! unless exists?(entity)
@@ -35,6 +34,7 @@ load_current_value do
 end
 
 action :add do
+  fail 'Ceph Cluster is not available!' unless ceph_available?
   execute "ceph auth add #{new_resource.entity} #{strcaps}" do
     not_if { current_resource }
   end
@@ -44,22 +44,8 @@ action :add do
   end
 end
 
-action :write do
-  directory ::File.dirname(new_resource.keyring) do
-    owner 'ceph'
-    group 'ceph'
-    mode '0750'
-    recursive true
-  end
-
-  execute "Create #{entity} Keyring" do
-    command "ceph-authtool --create-keyring #{new_resource.keyring} --add-key=#{new_resource.secret} --name #{new_resource.entity} #{(new_resource.uid ? "--set-uid=#{new_resource.uid}" : '')} #{strcaps}"
-    user 'ceph'
-    creates new_resource.keyring
-  end
-end
-
 action :delete do
+  fail 'Ceph Cluster is not available!' unless ceph_available?
   execute "ceph auth del #{new_resource.entity}" do
     only_if { current_resource }
   end
@@ -76,8 +62,13 @@ def strcaps
 end
 
 def exists?(entity)
-  Mixlib::ShellOut.new("ceph auth get #{entity}").run_command.error!
-  true
-rescue
-  false
+  require 'timeout'
+  begin
+    Timeout.timeout(5) do
+      Mixlib::ShellOut.new("ceph auth get #{entity}").run_command.error!
+      true
+    end
+  rescue
+    false
+  end
 end

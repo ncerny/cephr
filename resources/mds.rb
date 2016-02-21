@@ -16,9 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative '../libraries/helpers'
-include CernyCeph::Helpers
-
 resource_name 'ceph_mds'
 
 property :name, String, name_property: true

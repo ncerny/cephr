@@ -26,6 +26,8 @@ load_current_value do
 end
 
 action :create do
+  fail 'The Monitor keyring must be written before creating a monitor!' unless ::File.exist?("/var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring")
+
   directory "/var/lib/ceph/mon/ceph-#{new_resource.name}" do
     owner 'ceph'
     group 'ceph'
@@ -40,18 +42,6 @@ action :create do
     mode '0750'
     recursive true
     action :create
-  end
-
-  execute 'Import Admin Keyring into Monitor Keyring' do
-    command "ceph-authtool /var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring --import-keyring /etc/ceph/#{node.run_state['ceph']['cluster']}.client.admin.keyring"
-    user 'ceph'
-    not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
-  end
-
-  execute 'Import Bootstrap Keyring into Monitor Keyring' do
-    command "ceph-authtool /var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring --import-keyring /var/lib/ceph/bootstrap-osd/#{node.run_state['ceph']['cluster']}.keyring"
-    user 'ceph'
-    not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
   end
 
   execute 'Add this monitor to monmap' do
@@ -97,8 +87,13 @@ action :create do
 end
 
 def exists?(mon)
-  Mixlib::ShellOut.new("ceph mon metadata #{mon}").run_command.error!
-  true
-rescue
-  false
+  require 'timeout'
+  begin
+    Timeout.timeout(5) do
+      Mixlib::ShellOut.new("ceph mon metadata #{mon}").run_command.error!
+      true
+    end
+  rescue
+    false
+  end
 end

@@ -30,6 +30,7 @@ property :client, String, default: 'admin'
 property :key, String
 
 action :create do
+  fail 'Ceph Cluster is not available!' unless ceph_available?
   execute "ceph fs new #{new_resource.name} #{new_resource.metadata_pool} #{new_resource.data_pool}" do
     not_if 'ceph fs ls'
   end

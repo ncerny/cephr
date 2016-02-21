@@ -39,6 +39,7 @@ load_current_value do
 end
 
 action :create do
+  fail 'Ceph Cluster is not available!' unless ceph_available?
   pgp_num = new_resource.pgp_num || ''
   crush_ruleset = new_resource.crush_ruleset || ''
 
@@ -55,6 +56,7 @@ action :create do
 end
 
 action :delete do
+  fail 'Ceph Cluster is not available!' unless ceph_available?
   execute "Delete Pool #{new_resource.name}" do
     command "ceph osd pool delete #{new_resource.name} #{new_resource.name} --yes-i-really-really-mean-it"
     only_if "ceph osd pool stats #{new_resource.name}"
@@ -62,8 +64,13 @@ action :delete do
 end
 
 def exists?(pool)
-  Mixlib::ShellOut.new("ceph osd pool stats #{pool}").run_command.error!
-  true
-rescue
-  false
+  require 'timeout'
+  begin
+    Timeout.timeout(5) do
+      Mixlib::ShellOut.new("ceph osd pool stats #{pool}").run_command.error!
+      true
+    end
+  rescue
+    false
+  end
 end

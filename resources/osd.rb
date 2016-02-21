@@ -36,6 +36,8 @@ end
 
 action :create do
   return unless new_resource.host == node['fqdn'] || new_resource.host == node['hostname']
+  fail 'Ceph Cluster is not available!' unless ceph_available?
+
   new_resource.uuid ||= SecureRandom.uuid
   new_resource.id ||= new_resource.name.split('.')[1].to_i
 
@@ -94,8 +96,13 @@ action :create do
 end
 
 def exists?(osd)
-  Mixlib::ShellOut.new("ceph osd find #{osd}").run_command.error!
-  true
-rescue
-  false
+  require 'timeout'
+  begin
+    Timeout.timeout(5) do
+      Mixlib::ShellOut.new("ceph osd find #{osd}").run_command.error!
+      true
+    end
+  rescue
+    false
+  end
 end

@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+### Cluster Configuration and Package Installation ###
 ceph_cluster 'ceph' do
   version node['ceph']['version']
   monitors 'default-bento-centos-72' => '192.168.247.21',
@@ -50,8 +51,9 @@ ceph_cluster 'ceph' do
   EOF
 end
 
-ceph_auth 'client.admin' do
-  action :write
+### Create the Keyrings needed for authentication ###
+# Write the Admin keyring that we need to authenticate to the Ceph Cluster
+ceph_keyring 'client.admin' do
   secret 'AQCS2rJWl6yHDRAAXX3gQGZrDKmGtU1Tdq4Fvg=='
   keyring '/etc/ceph/ceph.client.admin.keyring'
   uid 0
@@ -60,23 +62,59 @@ ceph_auth 'client.admin' do
        mds: 'allow'
 end
 
-ceph_auth 'mon.' do
-  action :write
-  secret 'AQCS2rJWs1ZlDxAACh7GZoxYXp86fJ8aAplvWA=='
-  keyring '/var/lib/ceph/tmp/ceph.mon.keyring'
-  caps mon: 'allow *'
-end
-
-ceph_auth 'client.bootstrap-osd' do
-  action :write
+# Write out the bootstrap-osd keyring so the osd can join the Ceph cluster.
+ceph_keyring 'client.bootstrap-osd' do
   secret 'AQA31hVWrke4GhAAHfKU4POaKpaqvuhDSnwlLA=='
   keyring '/var/lib/ceph/bootstrap-osd/ceph.keyring'
   caps mon: 'allow profile bootstrap-osd',
        osd: 'allow profile bootstrap-osd'
 end
 
-ceph_mon node['hostname']
+# Write the Monitor keyring, and import the other keyrings into it.
+ceph_keyring 'mon.' do
+  secret 'AQCS2rJWs1ZlDxAACh7GZoxYXp86fJ8aAplvWA=='
+  keyring '/var/lib/ceph/tmp/ceph.mon.keyring'
+  import ['/etc/ceph/ceph.client.admin.keyring',
+          '/var/lib/ceph/bootstrap-osd/ceph.keyring']
+  caps mon: 'allow *'
+  action [:write, :import]
+end
 
+### Create the Monitors ###
+ceph_mon node['fqdn']
+
+# Early return if the cluster isn't fully up yet.
+# We do this so that kitchen converge doesn't die before creating all nodes.
+require 'timeout'
+begin
+  Timeout.timeout(5) do
+    cmd = Mixlib::ShellOut.new('ceph mon_status').run_command
+    cmd.error!
+  end
+rescue
+  return
+end
+
+## Add and Configure the Pools ###
+ceph_pool 'rbd' do
+  pg_num 64
+  size 2
+  min_size 1
+end
+
+ceph_pool 'data' do
+  pg_num 128
+  size 2
+  min_size 1
+end
+
+ceph_pool 'metadata' do
+  pg_num 128
+  size 2
+  min_size 1
+end
+
+### Create the OSDs ###
 ceph_osd 'osd.0' do
   host 'default-bento-centos-72'
 end
@@ -95,21 +133,3 @@ end
 #   dev '/dev/sdb'
 #   fs_type 'xfs'
 # end
-
-ceph_pool 'rbd' do
-  pg_num 64
-  size 2
-  min_size 1
-end
-
-ceph_pool 'data' do
-  pg_num 128
-  size 2
-  min_size 1
-end
-
-ceph_pool 'metadata' do
-  pg_num 128
-  size 2
-  min_size 1
-end
