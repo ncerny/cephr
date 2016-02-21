@@ -38,5 +38,18 @@ module CernyCeph
         end
       end
     end
+
+    def ceph_available?
+      require 'timeout'
+      begin
+        Timeout.timeout(5) do
+          cmd = Mixlib::ShellOut.new('ceph mon_status').run_command
+          cmd.error!
+          true
+        end
+      rescue
+        false
+      end
+    end
   end
 end
