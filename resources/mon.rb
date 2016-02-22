@@ -20,13 +20,15 @@
 resource_name 'ceph_mon'
 
 property :name, String, name_property: true
+property :keyring, String
 
 load_current_value do
   current_value_does_not_exist! unless exists?(name)
 end
 
 action :create do
-  fail 'The Monitor keyring must be written before creating a monitor!' unless ::File.exist?("/var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring")
+  new_resource.keyring ||= "/var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring"
+  raise 'The Monitor keyring must be written before creating a monitor!' unless ::File.exist?(new_resource.keyring)
 
   directory "/var/lib/ceph/mon/ceph-#{new_resource.name}" do
     owner 'ceph'
@@ -59,7 +61,7 @@ action :create do
   end
 
   execute 'Populate Monitor Daemon' do
-    command "ceph-mon --mkfs -i #{node['fqdn']} --monmap /var/lib/ceph/tmp/monmap --keyring /var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring"
+    command "ceph-mon --mkfs -i #{new_resource.name} --monmap /var/lib/ceph/tmp/monmap --keyring #{new_resource.keyring}"
     user 'ceph'
     not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
   end
@@ -76,10 +78,10 @@ action :create do
 
   service 'ceph-mon' do
     if Chef::Platform::ServiceHelpers.service_resource_providers.include?(:systemd)
-      service_name "ceph-mon@#{node['fqdn']}.service"
+      service_name "ceph-mon@#{new_resource.name}.service"
     elsif Chef::Platform::ServiceHelpers.service_resource_providers.include?(:upstart)
       service_name 'ceph-mon'
-      parameters id: node['fqdn']
+      parameters id: new_resource.name
     end
     supports restart: true, status: true
     action [:enable, :start]
