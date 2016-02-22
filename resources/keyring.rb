@@ -34,8 +34,7 @@ load_current_value do
 end
 
 action :write do
-  fail 'Must define caps!' unless new_resource.caps
-  fail 'Must define secret!' unless new_resource.secret
+  raise 'Must define secret!' unless new_resource.secret
 
   directory ::File.dirname(new_resource.keyring) do
     owner 'ceph'
@@ -52,8 +51,7 @@ action :write do
 end
 
 action :add do
-  fail 'Must define caps!' unless new_resource.caps
-  fail 'Must define secret!' unless new_resource.secret
+  raise 'Must define secret!' unless new_resource.secret
 
   execute "Create #{entity} Keyring" do
     command "ceph-authtool #{new_resource.keyring} --add-key=#{new_resource.secret} --name #{new_resource.entity} #{(new_resource.uid ? "--set-uid=#{new_resource.uid}" : '')} #{strcaps}"
@@ -63,7 +61,7 @@ action :add do
 end
 
 action :import do
-  fail 'Must define import keyring!' unless new_resource.import
+  raise 'Must define import keyring!' unless new_resource.import
   new_resource.import = [new_resource.import] if new_resource.import.is_a?(String)
   new_resource.import.each do |val|
     execute "Import #{val} Keyring into #{entity}" do
@@ -78,6 +76,8 @@ def strcaps
   if caps.is_a?(Hash)
     caps.each { |k, v| str += "--cap #{k} '#{v}' " }
     str.strip
+  elsif caps.nil?
+    ''
   else
     caps
   end

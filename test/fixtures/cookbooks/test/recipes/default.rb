@@ -59,25 +59,47 @@ ceph_keyring 'client.admin' do
   uid 0
   caps mon: 'allow *',
        osd: 'allow *',
-       mds: 'allow'
+       mds: 'allow *'
+  sensitive true
 end
 
 # Write out the bootstrap-osd keyring so the osd can join the Ceph cluster.
 ceph_keyring 'client.bootstrap-osd' do
   secret 'AQA31hVWrke4GhAAHfKU4POaKpaqvuhDSnwlLA=='
   keyring '/var/lib/ceph/bootstrap-osd/ceph.keyring'
-  caps mon: 'allow profile bootstrap-osd',
-       osd: 'allow profile bootstrap-osd'
+  caps mon: 'allow profile bootstrap-osd'
+  sensitive true
+end
+
+# Write out the bootstrap-mds keyring so the mds can join the Ceph cluster.
+ceph_keyring 'client.bootstrap-mds' do
+  secret 'AQBlXctWxAZ4IBAALA6KgrJgi3OT9nkBHEDmJg=='
+  keyring '/var/lib/ceph/bootstrap-mds/ceph.keyring'
+  caps mon: 'allow profile bootstrap-mds'
+  sensitive true
+end
+
+# Write out the bootstrap-rgw keyring so the rgw can join the Ceph cluster.
+ceph_keyring 'client.bootstrap-rgw' do
+  secret 'AQBlXctWUrSAFxAAy0TyyzdplGsAHuC8PRQs7g=='
+  keyring '/var/lib/ceph/bootstrap-rgw/ceph.keyring'
+  caps mon: 'allow profile bootstrap-rgw'
+  sensitive true
 end
 
 # Write the Monitor keyring, and import the other keyrings into it.
 ceph_keyring 'mon.' do
   secret 'AQCS2rJWs1ZlDxAACh7GZoxYXp86fJ8aAplvWA=='
   keyring '/var/lib/ceph/tmp/ceph.mon.keyring'
-  import ['/etc/ceph/ceph.client.admin.keyring',
-          '/var/lib/ceph/bootstrap-osd/ceph.keyring']
+  import [
+    '/etc/ceph/ceph.client.admin.keyring',
+    '/var/lib/ceph/bootstrap-osd/ceph.keyring',
+    '/var/lib/ceph/bootstrap-mds/ceph.keyring',
+    '/var/lib/ceph/bootstrap-rgw/ceph.keyring'
+  ]
   caps mon: 'allow *'
   action [:write, :import]
+  sensitive true
 end
 
 ### Create the Monitors ###
@@ -132,4 +154,29 @@ end
 #   host 'default-bento-centos-72'
 #   dev '/dev/sdb'
 #   fs_type 'xfs'
+# end
+
+### Create the Metadata Servers ###
+ceph_mds node['fqdn'] do
+  bootstrap_client 'client.bootstrap-mds'
+  #bootstrap_secret 'AQBlXctWxAZ4IBAALA6KgrJgi3OT9nkBHEDmJg=='
+end
+
+### Create the cephfs ###
+ceph_fs 'cephfs'
+
+directory '/mnt/cephfs'
+
+# ceph_fs '/mnt/cephfs' do
+#
+#   property :mount_point, String, name_property: true
+#   property :name, String, default: 'cephfs'
+#   property :data_pool, String, default: 'data'
+#   property :metadata_pool, String, default: 'metadata'
+#   property :mount_point, String, default: '/mnt/cephfs'
+#   property :client, String, default: 'admin'
+#   property :fuse, [TrueClass, FalseClass], default: false
+#   property :key, String
+#   property :keyring
+#
 # end

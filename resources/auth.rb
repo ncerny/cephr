@@ -15,6 +15,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
 include CernyCeph::Helpers
@@ -23,6 +24,10 @@ resource_name 'ceph_auth'
 
 property :entity, String, name_property: true
 property :caps, [String, Hash], required: true
+property :client, String
+property :keyring, String
+property :output, String
+property :key, String
 
 load_current_value do
   current_value_does_not_exist! unless exists?(entity)
@@ -34,18 +39,19 @@ load_current_value do
 end
 
 action :add do
-  fail 'Ceph Cluster is not available!' unless ceph_available?
-  execute "ceph auth add #{new_resource.entity} #{strcaps}" do
-    not_if { current_resource }
-  end
-
-  execute "ceph auth caps #{new_resource.entity} #{strcaps}" do
-    only_if { current_resource && current_resource.caps != new_resource.caps }
+  raise 'Ceph Cluster is not available!' unless ceph_available?
+  opts = ''
+  opts += " --name #{new_resource.client}" if new_resource.client
+  opts += " --key #{new_resource.key}" if new_resource.key && !new_resource.keyring
+  opts += " --keyring #{new_resource.keyring}" if new_resource.keyring
+  opts += " --out-file #{new_resource.output}" if new_resource.output
+  execute "ceph #{opts} auth get-or-create #{new_resource.entity} #{strcaps}" do
+    not_if { current_resource && current_resource.caps == new_resource.caps }
   end
 end
 
 action :delete do
-  fail 'Ceph Cluster is not available!' unless ceph_available?
+  raise 'Ceph Cluster is not available!' unless ceph_available?
   execute "ceph auth del #{new_resource.entity}" do
     only_if { current_resource }
   end
@@ -54,7 +60,7 @@ end
 def strcaps
   str = ''
   if caps.is_a?(Hash)
-    caps.each { |k, v| str += "--cap #{k} '#{v}' " }
+    caps.each { |k, v| str += "#{k} '#{v}' " }
     str.strip
   else
     caps
