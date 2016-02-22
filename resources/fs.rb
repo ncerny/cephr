@@ -22,24 +22,73 @@ include CernyCeph::Helpers
 
 resource_name 'ceph_fs'
 
-property :name, String, name_property: true
+property :mount_point, String, name_property: true
+property :name, String, default: 'cephfs'
 property :data_pool, String, default: 'data'
 property :metadata_pool, String, default: 'metadata'
 property :mount_point, String, default: '/mnt/cephfs'
 property :client, String, default: 'admin'
+property :fuse, [TrueClass, FalseClass], default: false
 property :key, String
+property :keyring
 
 action :create do
-  fail 'Ceph Cluster is not available!' unless ceph_available?
+  raise 'Ceph Cluster is not available!' unless ceph_available?
   execute "ceph fs new #{new_resource.name} #{new_resource.metadata_pool} #{new_resource.data_pool}" do
-    not_if 'ceph fs ls'
+    not_if 'ceph fs ls | grep -v "No filesystems enabled"'
   end
 end
 
 action :mount do
+  mons = ''
+  node.run_state['ceph']['monitors'].each do |_, v|
+    mons += "#{v},"
+  end
+  mons = mons.slice(0..-2)
 
+  if new_resource.fuse
+    package 'ceph-fuse'
+
+    execute 'Mount Ceph Filesystem as FUSE Mount' do
+      command "ceph-fuse -d #{new_resource.mount_point}"
+    end
+  else
+    opts = ''
+    opts << "name=#{new_resource.client}"
+    opts << "secret=#{new_resource.key}" if new_resource.key
+    opts << "secretfile=#{new_resource.keyfile}" if new_resource.keyfile
+    mount 'Mount Ceph Filesystem as Kernel Mount' do
+      action :mount
+      mount_point new_resource.mount_point
+      fstype 'ceph'
+      device "#{mons}:/"
+      options opts
+    end
+  end
 end
 
-action :fuse do
+action :enable do
+  mons = ''
+  node.run_state['ceph']['monitors'].each do |_, v|
+    mons += "#{v},"
+  end
+  mons = mons.slice(0..-2)
 
+  if new_resource.fuse
+    package 'ceph-fuse'
+
+
+  else
+    opts = ''
+    opts << "name=#{new_resource.client}"
+    opts << "secret=#{new_resource.key}" if new_resource.key
+    opts << "secretfile=#{new_resource.keyfile}" if new_resource.keyfile
+    mount 'Enable Ceph Filesystem as Kernel Mount' do
+      action :enable
+      mount_point new_resource.mount_point
+      fstype 'ceph'
+      device "#{mons}:/"
+      options opts
+    end
+  end
 end
