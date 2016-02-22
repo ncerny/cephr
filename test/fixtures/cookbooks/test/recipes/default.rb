@@ -157,10 +157,7 @@ end
 # end
 
 ### Create the Metadata Servers ###
-ceph_mds node['fqdn'] do
-  bootstrap_client 'client.bootstrap-mds'
-  #bootstrap_secret 'AQBlXctWxAZ4IBAALA6KgrJgi3OT9nkBHEDmJg=='
-end
+ceph_mds node['fqdn']
 
 ### Create the cephfs ###
 ceph_fs 'cephfs'

@@ -29,6 +29,9 @@ property :journal, String
 property :fs_type, String, default: 'xfs'
 property :uuid, String
 property :id, Integer
+property :bootstrap_client, String, default: 'client.bootstrap-osd'
+property :bootstrap_keyring, String
+property :bootstrap_secret, String
 
 load_current_value do
   current_value_does_not_exist! unless exists?(name.split('.')[1])
@@ -36,7 +39,26 @@ end
 
 action :create do
   return unless new_resource.host == node['fqdn'] || new_resource.host == node['hostname']
-  fail 'Ceph Cluster is not available!' unless ceph_available?
+  raise'Ceph Cluster is not available!' unless ceph_available?
+
+  new_resource.bootstrap_keyring ||= "/var/lib/ceph/bootstrap-osd/#{node.run_state['ceph']['cluster']}.keyring"
+  raise 'Secret or Keyfile must be given!' unless ::File.exist?(new_resource.bootstrap_keyring) || new_resource.bootstrap_secret
+
+  ceph_keyring new_resource.bootstrap_client do
+    keyring new_resource.bootstrap_keyring
+    secret new_resource.bootstrap_secret
+    not_if { ::File.exist?(new_resource.bootstrap_keyring) }
+    only_if { new_resource.bootstrap_secret }
+  end
+
+  ceph_auth new_resource.name do
+    caps mon: 'allow profile osd',
+         osd: 'allow *'
+    client new_resource.bootstrap_client
+    keyring new_resource.bootstrap_keyring
+    output "/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}/keyring"
+    not_if { ::File.exist?("/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}/keyring") }
+  end
 
   new_resource.uuid ||= SecureRandom.uuid
   new_resource.id ||= new_resource.name.split('.')[1].to_i
@@ -64,7 +86,7 @@ action :create do
     end
   end
 
-  execute "ceph-osd -i #{new_resource.id} --mkfs --mkkey --osd-uuid #{new_resource.uuid}" do
+  execute "ceph-osd -i #{new_resource.id} --mkfs --osd-uuid #{new_resource.uuid}" do
     user 'ceph'
     not_if { current_resource }
   end
