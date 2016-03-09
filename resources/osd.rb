@@ -41,37 +41,20 @@ action :create do
   return unless new_resource.host == node['fqdn'] || new_resource.host == node['hostname']
   raise'Ceph Cluster is not available!' unless ceph_available?
 
-  new_resource.bootstrap_keyring ||= "/var/lib/ceph/bootstrap-osd/#{node.run_state['ceph']['cluster']}.keyring"
-  raise 'Secret or Keyfile must be given!' unless ::File.exist?(new_resource.bootstrap_keyring) || new_resource.bootstrap_secret
-
-  ceph_keyring new_resource.bootstrap_client do
-    keyring new_resource.bootstrap_keyring
-    secret new_resource.bootstrap_secret
-    not_if { ::File.exist?(new_resource.bootstrap_keyring) }
-    only_if { new_resource.bootstrap_secret }
-  end
-
-  ceph_auth new_resource.name do
-    caps mon: 'allow profile osd',
-         osd: 'allow *'
-    client new_resource.bootstrap_client
-    keyring new_resource.bootstrap_keyring
-    output "/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}/keyring"
-    not_if { ::File.exist?("/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}/keyring") }
-  end
-
   new_resource.uuid ||= SecureRandom.uuid
   new_resource.id ||= new_resource.name.split('.')[1].to_i
-
-  execute "ceph osd create #{new_resource.uuid} #{new_resource.id}" do
-    not_if { current_resource }
-  end
+  new_resource.bootstrap_keyring ||= "/var/lib/ceph/bootstrap-osd/#{node.run_state['ceph']['cluster']}.keyring"
+  raise 'Secret or Keyfile must be given!' unless ::File.exist?(new_resource.bootstrap_keyring) || new_resource.bootstrap_secret
 
   directory "/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}" do
     owner 'ceph'
     group 'ceph'
     mode '0750'
     recursive true
+  end
+
+  execute "ceph osd create #{new_resource.uuid} #{new_resource.id}" do
+    not_if { current_resource }
   end
 
   if new_resource.dev
@@ -86,12 +69,15 @@ action :create do
     end
   end
 
-  execute "ceph-osd -i #{new_resource.id} --mkfs --osd-uuid #{new_resource.uuid}" do
-    user 'ceph'
-    not_if { current_resource }
+  ceph_keyring new_resource.bootstrap_client do
+    keyring new_resource.bootstrap_keyring
+    secret new_resource.bootstrap_secret
+    not_if { ::File.exist?(new_resource.bootstrap_keyring) }
+    only_if { new_resource.bootstrap_secret }
   end
 
-  execute "ceph auth add #{new_resource.name} osd 'allow *' mon 'allow profile osd' -i /var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}/keyring" do
+  execute "ceph-osd -i #{new_resource.id} --mkfs --mkkey --osd-uuid #{new_resource.uuid}" do
+    user 'ceph'
     not_if { current_resource }
   end
 

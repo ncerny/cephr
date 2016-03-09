@@ -55,7 +55,7 @@ action :create do
          osd: 'allow rwx',
          mds: 'allow'
     client new_resource.bootstrap_client
-    keyring new_resource.bootstrap_keyring
+    client_keyring new_resource.bootstrap_keyring
     output "/var/lib/ceph/mds/#{node.run_state['ceph']['cluster']}-#{new_resource.name}/keyring"
     not_if { ::File.exist?("/var/lib/ceph/mds/#{node.run_state['ceph']['cluster']}-#{new_resource.name}/keyring") }
   end

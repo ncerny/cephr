@@ -25,9 +25,9 @@ resource_name 'ceph_auth'
 property :entity, String, name_property: true
 property :caps, [String, Hash], required: true
 property :client, String
-property :keyring, String
+property :client_keyring, String
+property :client_key, String
 property :output, String
-property :key, String
 
 load_current_value do
   current_value_does_not_exist! unless exists?(entity)
@@ -42,8 +42,8 @@ action :add do
   raise 'Ceph Cluster is not available!' unless ceph_available?
   opts = ''
   opts += " --name #{new_resource.client}" if new_resource.client
-  opts += " --key #{new_resource.key}" if new_resource.key && !new_resource.keyring
-  opts += " --keyring #{new_resource.keyring}" if new_resource.keyring
+  opts += " --key #{new_resource.client_key}" if new_resource.client_key && !new_resource.client_keyring
+  opts += " --keyring #{new_resource.client_keyring}" if new_resource.client_keyring
   opts += " --out-file #{new_resource.output}" if new_resource.output
   execute "ceph #{opts} auth get-or-create #{new_resource.entity} #{strcaps}" do
     not_if { current_resource && current_resource.caps == new_resource.caps }
