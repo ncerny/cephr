@@ -32,7 +32,7 @@ load_current_value do
 
 end
 
-action :install do
+action :create do
   node.run_state['ceph'] ||= {}
   node.run_state['ceph']['config'] ||= {}
   node.run_state['ceph']['config']['global'] ||= {}
