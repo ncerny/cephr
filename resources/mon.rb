@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: mon
 #
 # Copyright 2016 Nathan Cerny
@@ -27,34 +27,34 @@ load_current_value do
 end
 
 action :create do
-  new_resource.keyring ||= "/var/lib/ceph/tmp/#{node.run_state['ceph']['cluster']}.mon.keyring"
+  new_resource.keyring ||= "/var/lib/ceph/tmp/#{node.run_state['cephr']['cluster']}.mon.keyring"
   raise 'The Monitor keyring must be written before creating a monitor!' unless ::File.exist?(new_resource.keyring)
 
   directory "/var/lib/ceph/mon/ceph-#{new_resource.name}" do
-    owner 'ceph'
-    group 'ceph'
+    owner 'cephr'
+    group 'cephr'
     mode '0750'
     recursive true
     action :create
   end
 
   directory '/var/lib/ceph/tmp/' do
-    owner 'ceph'
-    group 'ceph'
+    owner 'cephr'
+    group 'cephr'
     mode '0750'
     recursive true
     action :create
   end
 
   execute 'Add this monitor to monmap' do
-    command "monmaptool --create --add #{new_resource.name} #{node.run_state['ceph']['monitors'][new_resource.name]} --fsid #{node.run_state['ceph']['config']['global']['fsid']} /var/lib/ceph/tmp/monmap"
+    command "monmaptool --create --add #{new_resource.name} #{node.run_state['cephr']['monitors'][new_resource.name]} --fsid #{node.run_state['cephr']['config']['global']['fsid']} /var/lib/ceph/tmp/monmap"
     not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
   end
 
   # This is ugly.  State management is hard...this hack should work though.
-  node.run_state['ceph']['monitors'].each do |host, ip|
+  node.run_state['cephr']['monitors'].each do |host, ip|
     execute "Add monitor #{host} to monmap" do
-      command "monmaptool --add #{host} #{ip} --fsid #{node.run_state['ceph']['config']['global']['fsid']} /var/lib/ceph/tmp/monmap"
+      command "monmaptool --add #{host} #{ip} --fsid #{node.run_state['cephr']['config']['global']['fsid']} /var/lib/ceph/tmp/monmap"
       returns [0, 1]
       not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
     end
@@ -62,12 +62,12 @@ action :create do
 
   execute 'Populate Monitor Daemon' do
     command "ceph-mon --mkfs -i #{new_resource.name} --monmap /var/lib/ceph/tmp/monmap --keyring #{new_resource.keyring}"
-    user 'ceph'
+    user 'cephr'
     not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
   end
 
   file "/var/lib/ceph/mon/ceph-#{new_resource.name}/done" do
-    user 'ceph'
+    user 'cephr'
     action :touch
   end
 

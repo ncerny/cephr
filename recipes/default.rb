@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Recipe:: default
 #
 # Copyright 2016 Nathan Cerny

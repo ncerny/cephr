@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Library:: helpers
 #
 # Copyright 2016 Nathan Cerny
@@ -18,13 +18,13 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/MethodLength
 
-module CernyCeph
+module CephR
   module Helpers # rubocop:disable Style/Documentation
     def parse_config(config, section)
-      node.run_state['ceph'] ||= {}
-      node.run_state['ceph']['config'] ||= {}
+      node.run_state['cephr'] ||= {}
+      node.run_state['cephr']['config'] ||= {}
       if config.is_a?(Hash)
-        node.run_state['ceph']['config'] = config
+        node.run_state['cephr']['config'] = config
       else
         config.lines.each do |line|
           line = line.strip
@@ -32,8 +32,8 @@ module CernyCeph
             section = line.slice(1..-2)
           elsif line.strip != ''
             l = line.split(' = ')
-            node.run_state['ceph']['config'][section] ||= {}
-            node.run_state['ceph']['config'][section][l[0]] = l[1]
+            node.run_state['cephr']['config'][section] ||= {}
+            node.run_state['cephr']['config'][section][l[0]] = l[1]
           end
         end
       end

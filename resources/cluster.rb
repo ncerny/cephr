@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: cluster
 #
 # Copyright 2016 Nathan Cerny
@@ -18,7 +18,7 @@
 # rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
-include CernyCeph::Helpers
+include CephR::Helpers
 
 resource_name 'ceph_cluster'
 
@@ -33,31 +33,31 @@ load_current_value do
 end
 
 action :create do
-  node.run_state['ceph'] ||= {}
-  node.run_state['ceph']['config'] ||= {}
-  node.run_state['ceph']['config']['global'] ||= {}
+  node.run_state['cephr'] ||= {}
+  node.run_state['cephr']['config'] ||= {}
+  node.run_state['cephr']['config']['global'] ||= {}
   parse_config(config, 'global') unless config.nil?
 
-  node.run_state['ceph']['cluster'] = new_resource.name
-  node.run_state['ceph']['monitors'] = new_resource.monitors
+  node.run_state['cephr']['cluster'] = new_resource.name
+  node.run_state['cephr']['monitors'] = new_resource.monitors
 
-  node.run_state['ceph']['config']['global']['fsid'] = new_resource.fsid if new_resource.fsid
+  node.run_state['cephr']['config']['global']['fsid'] = new_resource.fsid if new_resource.fsid
   members = ''
   hosts = ''
   new_resource.monitors.each do |name, ip|
     members += ", #{name}"
     hosts += ", #{ip}"
   end
-  node.run_state['ceph']['config']['global']['mon initial members'] = members.slice(2..-1)
-  node.run_state['ceph']['config']['global']['mon host'] = hosts.slice(2..-1)
+  node.run_state['cephr']['config']['global']['mon initial members'] = members.slice(2..-1)
+  node.run_state['cephr']['config']['global']['mon host'] = hosts.slice(2..-1)
 
-  fail 'fsid is required!' unless node.run_state['ceph']['config']['global']['fsid']
+  fail 'fsid is required!' unless node.run_state['cephr']['config']['global']['fsid']
 
   case node['platform_family']
   when 'debian'
     include_recipe 'apt'
 
-    apt_repository 'ceph' do
+    apt_repository 'cephr' do
       uri "http://download.ceph.com/debian-#{new_resource.version}"
       components ['main']
       distribution node['lsb']['codename']
@@ -68,7 +68,7 @@ action :create do
     include_recipe 'yum-epel'
 
     pv = node['platform_version'].split('.')[0]
-    yum_repository 'ceph' do
+    yum_repository 'cephr' do
       description 'Ceph packages for $basearch'
       baseurl "http://download.ceph.com/rpm-#{new_resource.version}/el#{pv}/$basearch"
       gpgkey 'https://download.ceph.com/keys/release.asc'
@@ -83,25 +83,25 @@ action :create do
   end
 
   package 'ceph-common'
-  package 'ceph'
+  package 'cephr'
 
-  user 'ceph' do
+  user 'cephr' do
     comment 'Ceph daemons'
     home '/var/lib/ceph'
     shell '/sbin/nologin'
   end
 
   directory '/etc/ceph' do
-    owner 'ceph'
-    group 'ceph'
+    owner 'cephr'
+    group 'cephr'
     mode '0750'
     recursive true
     action :create
   end
 
   directory '/var/run/ceph' do
-    owner 'ceph'
-    group 'ceph'
+    owner 'cephr'
+    group 'cephr'
     mode '0750'
     recursive true
     action :create
@@ -109,9 +109,9 @@ action :create do
 
   template "/etc/ceph/#{new_resource.name}.conf" do
     source 'ceph.conf.erb'
-    cookbook 'cerny_ceph'
-    owner 'ceph'
-    group 'ceph'
+    cookbook 'cephr'
+    owner 'cephr'
+    group 'cephr'
     mode '0640'
   end
 end

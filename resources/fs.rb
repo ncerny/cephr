@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: fs
 #
 # Copyright 2016 Nathan Cerny
@@ -18,7 +18,7 @@
 # rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
-include CernyCeph::Helpers
+include CephR::Helpers
 
 resource_name 'ceph_fs'
 
@@ -41,7 +41,7 @@ end
 
 action :mount do
   mons = ''
-  node.run_state['ceph']['monitors'].each do |_, v|
+  node.run_state['cephr']['monitors'].each do |_, v|
     mons += "#{v},"
   end
   mons = mons.slice(0..-2)
@@ -60,7 +60,7 @@ action :mount do
     mount 'Mount Ceph Filesystem as Kernel Mount' do
       action :mount
       mount_point new_resource.mount_point
-      fstype 'ceph'
+      fstype 'cephr'
       device "#{mons}:/"
       options opts
     end
@@ -69,7 +69,7 @@ end
 
 action :enable do
   mons = ''
-  node.run_state['ceph']['monitors'].each do |_, v|
+  node.run_state['cephr']['monitors'].each do |_, v|
     mons += "#{v},"
   end
   mons = mons.slice(0..-2)
@@ -86,7 +86,7 @@ action :enable do
     mount 'Enable Ceph Filesystem as Kernel Mount' do
       action :enable
       mount_point new_resource.mount_point
-      fstype 'ceph'
+      fstype 'cephr'
       device "#{mons}:/"
       options opts
     end

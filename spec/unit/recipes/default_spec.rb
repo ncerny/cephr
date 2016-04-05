@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Spec:: default
 #
 # Copyright 2016 Nathan Cerny
@@ -19,7 +19,7 @@
 
 require 'spec_helper'
 
-describe 'cerny_ceph::default' do
+describe 'cephr::default' do
   context 'When all attributes are default, on an unspecified platform' do
     let(:chef_run) do
       runner = ChefSpec::ServerRunner.new

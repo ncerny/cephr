@@ -1,16 +1,14 @@
-name 'cerny_ceph'
+name 'cephr'
 maintainer 'Nathan Cerny'
 maintainer_email 'ncerny@gmail.com'
 license 'apache2'
-description 'Installs/Configures ceph'
-long_description 'Installs/Configures ceph'
+description 'Library Cookbook to Install and Manage Ceph Clusters'
+long_description 'Library Cookbook to Install and Manage Ceph Clusters.'
 version '0.1.0'
-
-conflicts 'ceph'
 
 depends 'apt'
 depends 'yum'
 depends 'yum-epel'
 
-source_url 'https://github.com/ncerny/cerny_ceph' if respond_to?(:source_url)
-issues_url 'https://github.com/ncerny/cerny_ceph/issues' if respond_to?(:issues_url)
+source_url 'https://github.com/cerny-cc/cephr' if respond_to?(:source_url)
+issues_url 'https://github.com/cerny-cc/cephr/issues' if respond_to?(:issues_url)

@@ -6,4 +6,4 @@ description 'Installs/Configures test'
 long_description 'Installs/Configures test'
 version '0.1.0'
 
-depends 'cerny_ceph'
+depends 'cephr'

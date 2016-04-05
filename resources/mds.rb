@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: mds
 #
 # Copyright 2016 Nathan Cerny
@@ -19,7 +19,7 @@
 # rubocop:disable Metrics/MethodLength
 
 require_relative '../libraries/helpers'
-include CernyCeph::Helpers
+include CephR::Helpers
 
 resource_name 'ceph_mds'
 
@@ -33,12 +33,12 @@ load_current_value do
 end
 
 action :create do
-  new_resource.bootstrap_keyring ||= "/var/lib/ceph/bootstrap-mds/#{node.run_state['ceph']['cluster']}.keyring"
+  new_resource.bootstrap_keyring ||= "/var/lib/ceph/bootstrap-mds/#{node.run_state['cephr']['cluster']}.keyring"
   raise 'Secret or Keyfile must be given!' unless ::File.exist?(new_resource.bootstrap_keyring) || new_resource.bootstrap_secret
 
-  directory "/var/lib/ceph/mds/#{node.run_state['ceph']['cluster']}-#{new_resource.name}" do
-    owner 'ceph'
-    group 'ceph'
+  directory "/var/lib/ceph/mds/#{node.run_state['cephr']['cluster']}-#{new_resource.name}" do
+    owner 'cephr'
+    group 'cephr'
     mode '0750'
     recursive true
   end
@@ -56,14 +56,14 @@ action :create do
          mds: 'allow'
     client new_resource.bootstrap_client
     client_keyring new_resource.bootstrap_keyring
-    output "/var/lib/ceph/mds/#{node.run_state['ceph']['cluster']}-#{new_resource.name}/keyring"
-    not_if { ::File.exist?("/var/lib/ceph/mds/#{node.run_state['ceph']['cluster']}-#{new_resource.name}/keyring") }
+    output "/var/lib/ceph/mds/#{node.run_state['cephr']['cluster']}-#{new_resource.name}/keyring"
+    not_if { ::File.exist?("/var/lib/ceph/mds/#{node.run_state['cephr']['cluster']}-#{new_resource.name}/keyring") }
   end
 
-  file "/var/lib/ceph/mds/#{node.run_state['ceph']['cluster']}-#{new_resource.name}/done" do
+  file "/var/lib/ceph/mds/#{node.run_state['cephr']['cluster']}-#{new_resource.name}/done" do
     action :touch
-    owner 'ceph'
-    group 'ceph'
+    owner 'cephr'
+    group 'cephr'
     mode '0640'
   end
 

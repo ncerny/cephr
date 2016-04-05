@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: keyring
 #
 # Copyright 2016 Nathan Cerny
@@ -18,7 +18,7 @@
 # rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
-include CernyCeph::Helpers
+include CephR::Helpers
 
 resource_name 'ceph_keyring'
 
@@ -37,15 +37,15 @@ action :write do
   raise 'Must define secret!' unless new_resource.secret
 
   directory ::File.dirname(new_resource.keyring) do
-    owner 'ceph'
-    group 'ceph'
+    owner 'cephr'
+    group 'cephr'
     mode '0750'
     recursive true
   end
 
   execute "Create #{entity} Keyring" do
     command "ceph-authtool --create-keyring #{new_resource.keyring} --add-key=#{new_resource.secret} --name #{new_resource.entity} #{(new_resource.uid ? "--set-uid=#{new_resource.uid}" : '')} #{strcaps}"
-    user 'ceph'
+    user 'cephr'
     creates new_resource.keyring
   end
 end
@@ -55,7 +55,7 @@ action :add do
 
   execute "Create #{entity} Keyring" do
     command "ceph-authtool #{new_resource.keyring} --add-key=#{new_resource.secret} --name #{new_resource.entity} #{(new_resource.uid ? "--set-uid=#{new_resource.uid}" : '')} #{strcaps}"
-    user 'ceph'
+    user 'cephr'
     not_if "ceph-authtool --list #{new_resource.keyring} | grep #{new_resource.entity}"
   end
 end
@@ -66,7 +66,7 @@ action :import do
   new_resource.import.each do |val|
     execute "Import #{val} Keyring into #{entity}" do
       command "ceph-authtool #{new_resource.keyring} --import-keyring #{val}"
-      user 'ceph'
+      user 'cephr'
     end
   end
 end

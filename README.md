@@ -1,3 +1,3 @@
-# cerny_ceph
+# cephr
 
 TODO: Enter the cookbook description here.

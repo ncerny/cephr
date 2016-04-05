@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: auth
 #
 # Copyright 2016 Nathan Cerny
@@ -18,7 +18,7 @@
 # rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
-include CernyCeph::Helpers
+include CephR::Helpers
 
 resource_name 'ceph_auth'
 
@@ -34,8 +34,8 @@ load_current_value do
   # cmd = Mixlib::ShellOut.new("ceph auth get #{entity}").run_command
   # current_value_does_not_exist! if cmd.error!
   # parse(cmd.stdout)
-  # caps node.run_state['ceph']['auth'][entity]['caps']
-  # key node.run_state['ceph']['auth'][entity]['key']
+  # caps node.run_state['cephr']['auth'][entity]['caps']
+  # key node.run_state['cephr']['auth'][entity]['key']
 end
 
 action :add do

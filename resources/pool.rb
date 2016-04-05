@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: pool
 #
 # Copyright 2016 Nathan Cerny
@@ -18,7 +18,7 @@
 # rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
-include CernyCeph::Helpers
+include CephR::Helpers
 
 resource_name 'ceph_pool'
 

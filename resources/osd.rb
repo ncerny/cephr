@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: cerny_ceph
+# Cookbook Name:: cephr
 # Resource:: osd
 #
 # Copyright 2016 Nathan Cerny
@@ -18,7 +18,7 @@
 # rubocop:disable LineLength
 
 require_relative '../libraries/helpers'
-include CernyCeph::Helpers
+include CephR::Helpers
 
 resource_name 'ceph_osd'
 
@@ -43,12 +43,12 @@ action :create do
 
   new_resource.uuid ||= SecureRandom.uuid
   new_resource.id ||= new_resource.name.split('.')[1].to_i
-  new_resource.bootstrap_keyring ||= "/var/lib/ceph/bootstrap-osd/#{node.run_state['ceph']['cluster']}.keyring"
+  new_resource.bootstrap_keyring ||= "/var/lib/ceph/bootstrap-osd/#{node.run_state['cephr']['cluster']}.keyring"
   raise 'Secret or Keyfile must be given!' unless ::File.exist?(new_resource.bootstrap_keyring) || new_resource.bootstrap_secret
 
-  directory "/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}" do
-    owner 'ceph'
-    group 'ceph'
+  directory "/var/lib/ceph/osd/#{node.run_state['cephr']['cluster']}-#{new_resource.id}" do
+    owner 'cephr'
+    group 'cephr'
     mode '0750'
     recursive true
   end
@@ -63,9 +63,9 @@ action :create do
       not_if { current_resource }
     end
 
-    execute "mount -o noatime #{dev} /var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}" do
+    execute "mount -o noatime #{dev} /var/lib/ceph/osd/#{node.run_state['cephr']['cluster']}-#{new_resource.id}" do
       not_if { current_resource }
-      notifies :create, "directory[/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}]", :immediately
+      notifies :create, "directory[/var/lib/ceph/osd/#{node.run_state['cephr']['cluster']}-#{new_resource.id}]", :immediately
     end
   end
 
@@ -77,12 +77,12 @@ action :create do
   end
 
   execute "ceph-osd -i #{new_resource.id} --mkfs --mkkey --osd-uuid #{new_resource.uuid}" do
-    user 'ceph'
+    user 'cephr'
     not_if { current_resource }
   end
 
-  file "/var/lib/ceph/osd/#{node.run_state['ceph']['cluster']}-#{new_resource.id}/done" do
-    user 'ceph'
+  file "/var/lib/ceph/osd/#{node.run_state['cephr']['cluster']}-#{new_resource.id}/done" do
+    user 'cephr'
     action :touch
   end
 
