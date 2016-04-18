@@ -29,5 +29,5 @@ suites:
     run_list:
       - recipe[test::default]
     attributes:
-      ceph:
+      cephr:
         version: 'infernalis'
