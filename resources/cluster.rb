@@ -120,6 +120,7 @@ action :create do
     %w(ceph-create-keys@.service  ceph-disk@.service  ceph-mds@.service  ceph-mon@.service  ceph-osd@.service  ceph.target).each do |fn|
       cookbook_file "/lib/systemd/system/#{fn}" do
         source fn
+        cookbook 'cephr'
         action :create_if_missing
       end
     end
