@@ -51,16 +51,23 @@ action :create do
   node.run_state['cephr']['config']['global']['mon initial members'] = members.slice(2..-1)
   node.run_state['cephr']['config']['global']['mon host'] = hosts.slice(2..-1)
 
-  fail 'fsid is required!' unless node.run_state['cephr']['config']['global']['fsid']
+  raise 'fsid is required!' unless node.run_state['cephr']['config']['global']['fsid']
 
   case node['platform_family']
   when 'debian'
+    ohai 'lsb-release' do
+      action :nothing
+    end
+    package 'lsb-release' do
+      notifies :reload, 'ohai[lsb-release]', :immediately
+    end
+
     include_recipe 'apt'
 
     apt_repository 'ceph' do
       uri "http://download.ceph.com/debian-#{new_resource.version}"
       components ['main']
-      distribution node['lsb']['codename']
+      distribution lazy { node['lsb']['codename'] }
       key 'https://download.ceph.com/keys/release.asc'
       action :add
     end
