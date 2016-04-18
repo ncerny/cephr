@@ -60,7 +60,7 @@ action :mount do
     mount 'Mount Ceph Filesystem as Kernel Mount' do
       action :mount
       mount_point new_resource.mount_point
-      fstype 'cephr'
+      fstype 'ceph'
       device "#{mons}:/"
       options opts
     end

@@ -31,16 +31,16 @@ action :create do
   raise 'The Monitor keyring must be written before creating a monitor!' unless ::File.exist?(new_resource.keyring)
 
   directory "/var/lib/ceph/mon/ceph-#{new_resource.name}" do
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0750'
     recursive true
     action :create
   end
 
   directory '/var/lib/ceph/tmp/' do
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0750'
     recursive true
     action :create
@@ -62,12 +62,12 @@ action :create do
 
   execute 'Populate Monitor Daemon' do
     command "ceph-mon --mkfs -i #{new_resource.name} --monmap /var/lib/ceph/tmp/monmap --keyring #{new_resource.keyring}"
-    user 'cephr'
+    user 'ceph'
     not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
   end
 
   file "/var/lib/ceph/mon/ceph-#{new_resource.name}/done" do
-    user 'cephr'
+    user 'ceph'
     action :touch
   end
 

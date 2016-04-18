@@ -37,8 +37,8 @@ action :create do
   raise 'Secret or Keyfile must be given!' unless ::File.exist?(new_resource.bootstrap_keyring) || new_resource.bootstrap_secret
 
   directory "/var/lib/ceph/mds/#{node.run_state['cephr']['cluster']}-#{new_resource.name}" do
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0750'
     recursive true
   end

@@ -37,15 +37,15 @@ action :write do
   raise 'Must define secret!' unless new_resource.secret
 
   directory ::File.dirname(new_resource.keyring) do
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0750'
     recursive true
   end
 
   execute "Create #{entity} Keyring" do
     command "ceph-authtool --create-keyring #{new_resource.keyring} --add-key=#{new_resource.secret} --name #{new_resource.entity} #{(new_resource.uid ? "--set-uid=#{new_resource.uid}" : '')} #{strcaps}"
-    user 'cephr'
+    user 'ceph'
     creates new_resource.keyring
   end
 end
@@ -55,7 +55,7 @@ action :add do
 
   execute "Create #{entity} Keyring" do
     command "ceph-authtool #{new_resource.keyring} --add-key=#{new_resource.secret} --name #{new_resource.entity} #{(new_resource.uid ? "--set-uid=#{new_resource.uid}" : '')} #{strcaps}"
-    user 'cephr'
+    user 'ceph'
     not_if "ceph-authtool --list #{new_resource.keyring} | grep #{new_resource.entity}"
   end
 end
@@ -66,7 +66,7 @@ action :import do
   new_resource.import.each do |val|
     execute "Import #{val} Keyring into #{entity}" do
       command "ceph-authtool #{new_resource.keyring} --import-keyring #{val}"
-      user 'cephr'
+      user 'ceph'
     end
   end
 end
