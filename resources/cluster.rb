@@ -118,9 +118,10 @@ action :create do
   # Lay down systemd unit files if they don't exist, and systemd is in use.
   if Chef::Platform::ServiceHelpers.service_resource_providers.include?(:systemd)
     %w(ceph-create-keys@.service  ceph-disk@.service  ceph-mds@.service  ceph-mon@.service  ceph-osd@.service  ceph.target).each do |fn|
-    cookbook_file "/lib/systemd/system/#{fn}" do
-      source fn
-      action :create_if_missing
+      cookbook_file "/lib/systemd/system/#{fn}" do
+        source fn
+        action :create_if_missing
+      end
     end
   end
 end
