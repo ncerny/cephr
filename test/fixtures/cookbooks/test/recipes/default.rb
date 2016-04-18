@@ -17,7 +17,7 @@
 # limitations under the License.
 
 ### Cluster Configuration and Package Installation ###
-ceph_cluster 'cephr' do
+ceph_cluster 'ceph' do
   version node['cephr']['version']
   monitors 'default-bento-centos-72' => '192.168.247.21',
            'default-bento-debian-82' => '192.168.247.22',

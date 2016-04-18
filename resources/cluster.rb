@@ -114,6 +114,15 @@ action :create do
     group 'ceph'
     mode '0640'
   end
+
+  # Lay down systemd unit files if they don't exist, and systemd is in use.
+  if Chef::Platform::ServiceHelpers.service_resource_providers.include?(:systemd)
+    %w(ceph-create-keys@.service  ceph-disk@.service  ceph-mds@.service  ceph-mon@.service  ceph-osd@.service  ceph.target).each do |fn|
+    cookbook_file "/lib/systemd/system/#{fn}" do
+      source fn
+      action :create_if_missing
+    end
+  end
 end
 
 action :upgrade do
