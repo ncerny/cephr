@@ -57,7 +57,7 @@ action :create do
   when 'debian'
     include_recipe 'apt'
 
-    apt_repository 'cephr' do
+    apt_repository 'ceph' do
       uri "http://download.ceph.com/debian-#{new_resource.version}"
       components ['main']
       distribution node['lsb']['codename']
@@ -68,7 +68,7 @@ action :create do
     include_recipe 'yum-epel'
 
     pv = node['platform_version'].split('.')[0]
-    yum_repository 'cephr' do
+    yum_repository 'ceph' do
       description 'Ceph packages for $basearch'
       baseurl "http://download.ceph.com/rpm-#{new_resource.version}/el#{pv}/$basearch"
       gpgkey 'https://download.ceph.com/keys/release.asc'
@@ -83,25 +83,25 @@ action :create do
   end
 
   package 'ceph-common'
-  package 'cephr'
+  package 'ceph'
 
-  user 'cephr' do
+  user 'ceph' do
     comment 'Ceph daemons'
     home '/var/lib/ceph'
     shell '/sbin/nologin'
   end
 
   directory '/etc/ceph' do
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0750'
     recursive true
     action :create
   end
 
   directory '/var/run/ceph' do
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0750'
     recursive true
     action :create
@@ -110,8 +110,8 @@ action :create do
   template "/etc/ceph/#{new_resource.name}.conf" do
     source 'ceph.conf.erb'
     cookbook 'cephr'
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0640'
   end
 end
