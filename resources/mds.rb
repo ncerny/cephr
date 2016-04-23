@@ -43,6 +43,14 @@ action :create do
     recursive true
   end
 
+  package 'ceph-mds' do
+    only_if 'yum search -C ceph-mds | grep ceph-mds'
+  end
+
+  package 'ceph' do
+    not_if 'yum search -C ceph-mds | grep ceph-mds'
+  end
+
   ceph_keyring new_resource.bootstrap_client do
     keyring new_resource.bootstrap_keyring
     secret new_resource.bootstrap_secret

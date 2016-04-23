@@ -53,6 +53,14 @@ action :create do
     recursive true
   end
 
+  package 'ceph-osd' do
+    only_if 'yum search -C ceph-osd | grep ceph-osd'
+  end
+
+  package 'ceph' do
+    not_if 'yum search -C ceph-osd | grep ceph-osd'
+  end
+
   execute "ceph osd create #{new_resource.uuid} #{new_resource.id}" do
     not_if { current_resource }
   end

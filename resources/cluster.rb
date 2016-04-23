@@ -90,7 +90,6 @@ action :create do
   end
 
   package 'ceph-common'
-  package 'ceph'
 
   user 'ceph' do
     comment 'Ceph daemons'

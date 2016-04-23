@@ -46,6 +46,14 @@ action :create do
     action :create
   end
 
+  package 'ceph-mon' do
+    only_if 'yum search -C ceph-mon | grep ceph-mon'
+  end
+
+  package 'ceph' do
+    not_if 'yum search -C ceph-mon | grep ceph-mon'
+  end
+
   execute 'Add this monitor to monmap' do
     command "monmaptool --create --add #{new_resource.name} #{node.run_state['cephr']['monitors'][new_resource.name]} --fsid #{node.run_state['cephr']['config']['global']['fsid']} /var/lib/ceph/tmp/monmap"
     not_if { ::File.exist?("/var/lib/ceph/mon/ceph-#{new_resource.name}/done") }
