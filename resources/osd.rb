@@ -94,6 +94,8 @@ action :create do
     action :create
   end
 
+  execute "ceph-disk activate /var/lib/ceph/osd/#{node.run_state['cephr']['cluster']}-#{new_resource.id}"
+
   service 'ceph.target' do
     supports restart: true, status: true
     action [:enable, :start]
