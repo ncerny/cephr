@@ -4,7 +4,7 @@ maintainer_email 'ncerny@gmail.com'
 license 'apache2'
 description 'Library Cookbook to Install and Manage Ceph Clusters'
 long_description 'Library Cookbook to Install and Manage Ceph Clusters.'
-version '0.1.8'
+version '0.1.9'
 
 depends 'apt'
 depends 'yum'

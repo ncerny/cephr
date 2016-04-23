@@ -83,7 +83,7 @@ action :create do
 
   file "/var/lib/ceph/osd/#{node.run_state['cephr']['cluster']}-#{new_resource.id}/done" do
     user 'ceph'
-    action :touch
+    action :create
   end
 
   service 'ceph.target' do

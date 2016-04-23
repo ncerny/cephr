@@ -68,7 +68,7 @@ action :create do
 
   file "/var/lib/ceph/mon/ceph-#{new_resource.name}/done" do
     user 'ceph'
-    action :touch
+    action :create
   end
 
   service 'ceph.target' do
