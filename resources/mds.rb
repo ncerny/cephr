@@ -70,8 +70,8 @@ action :create do
 
   file "/var/lib/ceph/mds/#{node.run_state['cephr']['cluster']}-#{new_resource.name}/done" do
     action :create
-    owner 'cephr'
-    group 'cephr'
+    owner 'ceph'
+    group 'ceph'
     mode '0640'
   end
 
