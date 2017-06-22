@@ -40,12 +40,16 @@ end
 
 action :add do
   raise 'Ceph Cluster is not available!' unless ceph_available?
+
+  # TODO: Make caps adding more robust.
+
+  command = (current_resource ? 'caps' : 'get-or-create')
   opts = ''
   opts += " --name #{new_resource.client}" if new_resource.client
   opts += " --key #{new_resource.client_key}" if new_resource.client_key && !new_resource.client_keyring
   opts += " --keyring #{new_resource.client_keyring}" if new_resource.client_keyring
   opts += " --out-file #{new_resource.output}" if new_resource.output
-  execute "ceph #{opts} auth get-or-create #{new_resource.entity} #{strcaps}" do
+  execute "ceph #{opts} auth #{command} #{new_resource.entity} #{strcaps}" do
     not_if { current_resource && current_resource.caps == new_resource.caps }
   end
 end
